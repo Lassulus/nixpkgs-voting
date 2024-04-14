@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nixpkgs-voting"
+description = "voting platform for the nixpkgs/NixOS community"
+version = "1.2.0"
+authors = [{ name = "lassulus", email = "art@lassul.us" }]
+license = { text = "MIT" }
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Topic :: Utilities",
+  "Intended Audience :: Developers",
+]
+dependencies = [
+  "fastapi",
+  "fastapi-sso",
+  "pydantic",
+  "email-validator",
+  "uvicorn",
+  "python-jose",
+]
+
+[project.urls]
+Homepage = "https://github.com/lassulus/nixpkgs-voting"
+
+[project.scripts]
+nixpkgs-voting = "nixpkgs_voting:main"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+select = ["E", "F", "I", "U"]
+ignore = [ "E501" ]
+
+[tool.mypy]
+python_version = "3.11"
+pretty = true
+warn_redundant_casts = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+module = "setuptools.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pytest.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pydantic.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "fastapi.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "fastapi_sso.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "jose.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "uvicorn.*"
+ignore_missing_imports = true
