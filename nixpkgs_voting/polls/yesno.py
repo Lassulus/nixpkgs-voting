@@ -1,6 +1,6 @@
 from typing import Any
 
-from . import BaseBallotClass, BasePollClass
+from .base import BaseBallotClass, BasePollClass
 
 
 class Poll(BasePollClass):
@@ -26,9 +26,6 @@ class Poll(BasePollClass):
 
 
 class Ballot(BaseBallotClass):
-    # def __init__(self, poll_id: uuid.UUID, data: dict):
-    #     super().__init__(id=None, poll_id=poll_id, data=data)
-
     def vote(self, data: dict[str, Any]) -> None:
         if data["vote"] in ["yes", "no"]:
             self.data = data
