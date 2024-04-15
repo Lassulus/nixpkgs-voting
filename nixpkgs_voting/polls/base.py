@@ -15,35 +15,6 @@ def ballot_id(poll_id: uuid.UUID, github_id: int) -> str:
     return sha3_256(f"{secret_key}{poll_id}{str(github_id)}".encode()).hexdigest()
 
 
-class BasePollClass(BaseModel, ABC):
-    id: uuid.UUID = uuid.uuid4()
-    poll_data: dict = {}
-    poll_type: str
-
-    def __init__(self, poll_type: str):
-        super().__init__(poll_type=poll_type)
-
-    def save(self) -> None:
-        poll_directory = Path(os.environ["POLL_DIRECTORY"])
-        poll_file = poll_directory / f"{self.id}.json"
-        poll_file.write_text(self.model_dump_json())
-
-    @property
-    def ballots(self) -> list:
-        ballots = []
-        ballots_directory = (
-            Path(os.environ["POLL_DIRECTORY"]) / str(self.id) / "ballots"
-        )
-        for ballot_file in ballots_directory.iterdir():
-            ballot_module = importlib.import_module(
-                f"nixpkgs_voting.polls.{self.poll_type}"
-            )
-            ballot_data = json.loads(ballot_file.read_text())
-            ballot = ballot_module.Ballot(**ballot_data)
-            ballots.append(ballot)
-        return ballots
-
-
 class BaseBallotClass(BaseModel, ABC):
     id: str | None = None
     poll_id: uuid.UUID
@@ -68,3 +39,37 @@ class BaseBallotClass(BaseModel, ABC):
     @abstractmethod
     def vote(self, data: dict[str, Any]) -> None:
         pass
+
+
+class BasePollClass(BaseModel, ABC):
+    id: uuid.UUID = uuid.uuid4()
+    poll_data: dict = {}
+    poll_type: str
+
+    def __init__(self, poll_type: str):
+        super().__init__(poll_type=poll_type)
+
+    def save(self) -> None:
+        poll_directory = Path(os.environ["POLL_DIRECTORY"])
+        poll_file = poll_directory / f"{self.id}.json"
+        poll_file.write_text(self.model_dump_json())
+
+    @property
+    def ballots(self) -> dict[str, BaseBallotClass]:
+        ballots = {}
+        ballots_directory = (
+            Path(os.environ["POLL_DIRECTORY"]) / str(self.id) / "ballots"
+        )
+        for ballot_file in ballots_directory.iterdir():
+            ballot_module = importlib.import_module(
+                f"nixpkgs_voting.polls.{self.poll_type}"
+            )
+            ballot_data = json.loads(ballot_file.read_text())
+            ballot = ballot_module.Ballot(**ballot_data)
+            ballots[ballot.id] = ballot
+        return ballots
+
+    @ballots.setter
+    def ballots(self, ballots: dict) -> None:
+        for ballot in ballots:
+            ballots[ballot].save()
